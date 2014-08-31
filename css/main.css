@@ -18,3 +18,7 @@
 .field-cell:hover {
     cursor: pointer;
 }
+
+.field-cell-opened {
+    background: pink;
+}

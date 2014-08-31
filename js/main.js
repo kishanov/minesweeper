@@ -27,24 +27,9 @@ var minesweeper = {
         return coordinates;
     },
 
-    _placeMines: function (field) {
-        var coordinates = _.shuffle(field.coordinates);
-        var minesCounter = field.mines;
-
-        _.each(coordinates, function (coordinate) {
-            field.data[coordinate] = {
-                symbol: minesCounter > 0 ? minesweeper.constants.bomb : minesweeper.constants.empty,
-                cellState: minesweeper.CellStates.CLOSED
-            };
-            minesCounter--;
-        });
-
-        return field;
-    },
-
-    _neighbors: function (coordinates, fieldWidth, fieldHeight) {
-        var x = coordinates[0];
-        var y = coordinates[1];
+    _neighbors: function (coordinate, fieldWidth, fieldHeight) {
+        var x = coordinate[0];
+        var y = coordinate[1];
 
         var eightCellsAround = [
             [x - 1, y - 1],
@@ -60,6 +45,57 @@ var minesweeper = {
         return _.filter(eightCellsAround, function (pos) {
             return pos[0] >= 0 && pos[1] >= 0 && pos[0] < fieldWidth && pos[1] < fieldHeight;
         });
+    },
+
+    _emptyNeighbors: function (coordinate, field) {
+        return _.filter(minesweeper._neighbors(coordinate, field.width, field.height), function (c) {
+            return field.data[c].symbol == minesweeper.constants.empty;
+        });
+    },
+
+    _bfs: function (field, start) {
+        var levels = {};
+        var level = 0;
+        var vertices = [];
+        var frontier = [start];
+
+        while (frontier.length > 0) {
+            var next = [];
+
+            _.each(frontier, function (node) {
+                vertices.push(node);
+                levels[node] = level;
+
+                var neighbors = minesweeper._emptyNeighbors(node, field);
+
+                _.each(neighbors, function (adj) {
+                    if (!_.has(levels, adj)) {
+                        next.push(adj);
+                    }
+                });
+
+            });
+
+            frontier = next;
+            level += 1;
+        }
+
+        return vertices;
+    },
+
+    _placeMines: function (field) {
+        var coordinates = _.shuffle(field.coordinates);
+        var minesCounter = field.mines;
+
+        _.each(coordinates, function (coordinate) {
+            field.data[coordinate] = {
+                symbol: minesCounter > 0 ? minesweeper.constants.bomb : minesweeper.constants.empty,
+                state: minesweeper.CellStates.CLOSED
+            };
+            minesCounter--;
+        });
+
+        return field;
     },
 
     _placeNumbers: function (field) {
@@ -110,10 +146,19 @@ var Cell = React.createClass({
     },
 
     render: function () {
+        var cx = React.addons.classSet;
+        var classes = cx({
+            'field-cell': true,
+            'field-cell-opened': this.props.value.state == minesweeper.CellStates.OPEN,
+        });
+
+        var symb = this.props.value.state == minesweeper.CellStates.OPEN ? this.props.value.symbol : minesweeper.constants.empty;
+
+
         return React.DOM.div({
-            className: "field-cell",
+            className: classes,
             onMouseDown: this.handleClick
-        }, this.props.value.symbol);
+        }, symb);
     }
 });
 
@@ -144,8 +189,24 @@ var Field = React.createClass({
 
 var Game = React.createClass({
     handleClick: function (e) {
-        console.log("in game");
-        console.log(e);
+        if (this.state.field.data[e.coordinates].state == minesweeper.CellStates.CLOSED) {
+            var field = _.cloneDeep(this.state.field);
+
+            if (this.state.field.data[e.coordinates].symbol == minesweeper.constants.empty) {
+                var adjascentEmptyCells = minesweeper._bfs(field, e.coordinates);
+
+                _.each(adjascentEmptyCells, function (c) {
+                    field.data[c].state = minesweeper.CellStates.OPEN;
+                });
+            } else {
+                field.data[e.coordinates].state = minesweeper.CellStates.OPEN;
+
+            }
+
+            this.setState({
+                field: field
+            });
+        }
     },
 
     getInitialState: function () {
