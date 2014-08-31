@@ -2,17 +2,23 @@
 
 
 var minesweeper = {
-    constants: {
-        empty: '\u00A0',
-        bomb: '\u2620',
-        flag: '\u2691'
+    CellValueEnum: {
+        EMPTY: '\u00A0',
+        MINE: '\u2620',
+        FLAG: '\u2691'
     },
 
 
-    CellStates: {
+    CellStateEnum: {
         CLOSED: 0,
         MARKED: 1,
         OPEN: 2
+    },
+
+    GameStatusEnum: {
+        IN_PROGRESS: 0,
+        LOST: 1,
+        WON: 2
     },
 
     _getFieldCoordinates: function (width, height) {
@@ -49,7 +55,7 @@ var minesweeper = {
 
     _emptyNeighbors: function (coordinate, field) {
         return _.filter(minesweeper._neighbors(coordinate, field.width, field.height), function (c) {
-            return field.data[c].symbol == minesweeper.constants.empty;
+            return field.data[c].symbol == minesweeper.CellValueEnum.EMPTY;
         });
     },
 
@@ -83,14 +89,34 @@ var minesweeper = {
         return vertices;
     },
 
+    revealReachableEmptyCells: function (field, coordinate) {
+        var reachableEmptyCells = minesweeper._bfs(field, coordinate);
+
+        _.each(reachableEmptyCells, function (c) {
+            field.data[c].state = minesweeper.CellStateEnum.OPEN;
+        });
+
+        return field;
+    },
+
+    revealAllMines: function (field) {
+        _.each(field.coordinates, function (c) {
+            if (field.data[c].symbol == minesweeper.CellValueEnum.MINE) {
+                field.data[c].state = minesweeper.CellStateEnum.OPEN;
+            }
+        });
+
+        return field;
+    },
+
     _placeMines: function (field) {
         var coordinates = _.shuffle(field.coordinates);
         var minesCounter = field.mines;
 
         _.each(coordinates, function (coordinate) {
             field.data[coordinate] = {
-                symbol: minesCounter > 0 ? minesweeper.constants.bomb : minesweeper.constants.empty,
-                state: minesweeper.CellStates.CLOSED
+                symbol: minesCounter > 0 ? minesweeper.CellValueEnum.MINE : minesweeper.CellValueEnum.EMPTY,
+                state: minesweeper.CellStateEnum.CLOSED
             };
             minesCounter--;
         });
@@ -100,18 +126,18 @@ var minesweeper = {
 
     _placeNumbers: function (field) {
         var nonMineCells = _.filter(field.coordinates, function (c) {
-            return field.data[c].symbol != minesweeper.constants.bomb;
+            return field.data[c].symbol != minesweeper.CellValueEnum.MINE;
         });
 
         _.each(nonMineCells, function (c) {
             var neighbors = minesweeper._neighbors(c, field.width, field.height);
             var neighboringMines = _.filter(neighbors, function (n) {
-                return field.data[n].symbol == minesweeper.constants.bomb;
+                return field.data[n].symbol == minesweeper.CellValueEnum.MINE;
             });
 
             var countOfMines = neighboringMines.length;
 
-            field.data[c].symbol = countOfMines == 0 ? minesweeper.constants.empty : countOfMines;
+            field.data[c].symbol = countOfMines == 0 ? minesweeper.CellValueEnum.EMPTY : countOfMines;
         });
 
         return field;
@@ -149,14 +175,14 @@ var Cell = React.createClass({
         var cx = React.addons.classSet;
         var css = {
             'field-cell': true,
-            'field-cell-opened': this.props.value.state == minesweeper.CellStates.OPEN,
+            'field-cell-opened': this.props.value.state == minesweeper.CellStateEnum.OPEN,
         };
 
         if (!isNaN(this.props.value.symbol)) {
             css["mines" + this.props.value.symbol.toString()] = true;
         }
 
-        var symb = this.props.value.state == minesweeper.CellStates.OPEN ? this.props.value.symbol : minesweeper.constants.empty;
+        var symb = this.props.value.state == minesweeper.CellStateEnum.OPEN ? this.props.value.symbol : minesweeper.CellValueEnum.EMPTY;
 
 
         return React.DOM.div({
@@ -193,29 +219,37 @@ var Field = React.createClass({
 
 var Game = React.createClass({
     handleClick: function (e) {
-        if (this.state.field.data[e.coordinates].state == minesweeper.CellStates.CLOSED) {
-            var field = _.cloneDeep(this.state.field);
+        if (this.state.field.data[e.coordinates].state == minesweeper.CellStateEnum.CLOSED && this.state.gameStatus == minesweeper.GameStatusEnum.IN_PROGRESS) {
+            var fieldAfterClick = _.cloneDeep(this.state.field);
+            var gameStatusAfterClick = this.state.gameStatus;
 
-            if (this.state.field.data[e.coordinates].symbol == minesweeper.constants.empty) {
-                var adjascentEmptyCells = minesweeper._bfs(field, e.coordinates);
+            switch (this.state.field.data[e.coordinates].symbol) {
+                case minesweeper.CellValueEnum.EMPTY:
+                    fieldAfterClick = minesweeper.revealReachableEmptyCells(fieldAfterClick, e.coordinates);
+                    break;
 
-                _.each(adjascentEmptyCells, function (c) {
-                    field.data[c].state = minesweeper.CellStates.OPEN;
-                });
-            } else {
-                field.data[e.coordinates].state = minesweeper.CellStates.OPEN;
+                case minesweeper.CellValueEnum.MINE:
+                    gameStatusAfterClick = minesweeper.GameStatusEnum.LOST;
+                    fieldAfterClick = minesweeper.revealAllMines(fieldAfterClick);
 
+                    break;
+
+                default:
+                    fieldAfterClick.data[e.coordinates].state = minesweeper.CellStateEnum.OPEN;
             }
 
+
             this.setState({
-                field: field
+                field: fieldAfterClick,
+                gameStatus: gameStatusAfterClick
             });
         }
     },
 
     getInitialState: function () {
         return {
-            field: minesweeper.generateField(this.props.width, this.props.height, this.props.mines)
+            field: minesweeper.generateField(this.props.width, this.props.height, this.props.mines),
+            gameStatus: minesweeper.GameStatusEnum.IN_PROGRESS
         }
     },
 
