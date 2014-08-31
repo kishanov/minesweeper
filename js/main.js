@@ -19,11 +19,19 @@ var minesweeper = {
         OPEN: 2
     },
 
+
     GameStatusEnum: {
         IN_PROGRESS: 0,
         LOST: 1,
         WON: 2
     },
+
+
+    MouseButtonsEnum: {
+        LEFT: 0,
+        RIGHT: 2
+    },
+
 
     _getFieldCoordinates: function (width, height) {
         var coordinates = [];
@@ -36,6 +44,7 @@ var minesweeper = {
 
         return coordinates;
     },
+
 
     _neighbors: function (coordinate, fieldWidth, fieldHeight) {
         var x = coordinate[0];
@@ -57,11 +66,13 @@ var minesweeper = {
         });
     },
 
+
     _emptyNeighbors: function (coordinate, field) {
         return _.filter(minesweeper._neighbors(coordinate, field.width, field.height), function (c) {
-            return field.data[c].symbol == minesweeper.CellValueEnum.EMPTY;
+            return field.data[c].symbol != minesweeper.CellValueEnum.MINE;
         });
     },
+
 
     _bfs: function (field, start) {
         var levels = {};
@@ -93,6 +104,7 @@ var minesweeper = {
         return vertices;
     },
 
+
     revealReachableEmptyCells: function (field, coordinate) {
         var reachableEmptyCells = minesweeper._bfs(field, coordinate);
 
@@ -103,6 +115,7 @@ var minesweeper = {
         return field;
     },
 
+
     revealAllMines: function (field) {
         _.each(field.coordinates, function (c) {
             if (field.data[c].symbol == minesweeper.CellValueEnum.MINE) {
@@ -112,6 +125,7 @@ var minesweeper = {
 
         return field;
     },
+
 
     _placeMines: function (field) {
         var coordinates = _.shuffle(field.coordinates);
@@ -127,6 +141,7 @@ var minesweeper = {
 
         return field;
     },
+
 
     _placeNumbers: function (field) {
         var nonMineCells = _.filter(field.coordinates, function (c) {
@@ -147,6 +162,7 @@ var minesweeper = {
         return field;
     },
 
+
     generateField: function (width, height, mines) {
         var field = {
             width: width,
@@ -158,7 +174,6 @@ var minesweeper = {
 
         field = minesweeper._placeMines(field);
         field = minesweeper._placeNumbers(field);
-
 
         return field;
     }
@@ -174,12 +189,18 @@ var Cell = React.createClass({
         e.preventDefault();
 
         this.props.onCellClick({
-            coordinates: this.props.coordinates,
+            coordinate: this.props.coordinate,
             button: e.button
         });
     },
 
     render: function () {
+        var displayValue = {};
+        displayValue[minesweeper.CellStateEnum.MARKED] = minesweeper.CellValueEnum.FLAG;
+        displayValue[minesweeper.CellStateEnum.OPEN] = this.props.value.symbol;
+        displayValue[minesweeper.CellStateEnum.CLOSED] = minesweeper.CellValueEnum.EMPTY;
+
+
         var cx = React.addons.classSet;
         var css = {
             'field-cell': true,
@@ -190,13 +211,14 @@ var Cell = React.createClass({
             css["mines" + this.props.value.symbol.toString()] = true;
         }
 
-        var symb = this.props.value.state == minesweeper.CellStateEnum.OPEN ? this.props.value.symbol : minesweeper.CellValueEnum.EMPTY;
-
+        if (this.props.value.state == minesweeper.CellStateEnum.MARKED) {
+            css["marked-cell"] = true;
+        }
 
         return React.DOM.div({
             className: cx(css),
             onMouseDown: this.handleClick
-        }, symb);
+        }, displayValue[this.props.value.state]);
     }
 });
 
@@ -215,7 +237,7 @@ var Field = React.createClass({
                 return React.DOM.div({className: "field-row"},
                     _.map(_.range(field.height), function (j) {
                         return Cell({
-                            coordinates: [i, j],
+                            coordinate: [i, j],
                             value: field.data[[i, j]],
                             onCellClick: clickEvent
                         })
@@ -227,31 +249,47 @@ var Field = React.createClass({
 
 var Game = React.createClass({
     handleClick: function (e) {
-        if (this.state.field.data[e.coordinates].state == minesweeper.CellStateEnum.CLOSED && this.state.gameStatus == minesweeper.GameStatusEnum.IN_PROGRESS) {
+        var cell = this.state.field.data[e.coordinate];
+
+
+        if (cell.state == minesweeper.CellStateEnum.OPEN ||
+            this.state.gameStatus != minesweeper.GameStatusEnum.IN_PROGRESS) {
+
+            /* do nothing */
+        } else {
             var fieldAfterClick = _.cloneDeep(this.state.field);
             var gameStatusAfterClick = this.state.gameStatus;
 
-            switch (this.state.field.data[e.coordinates].symbol) {
-                case minesweeper.CellValueEnum.EMPTY:
-                    fieldAfterClick = minesweeper.revealReachableEmptyCells(fieldAfterClick, e.coordinates);
-                    break;
+            if (e.button == minesweeper.MouseButtonsEnum.LEFT) {
 
-                case minesweeper.CellValueEnum.MINE:
-                    gameStatusAfterClick = minesweeper.GameStatusEnum.LOST;
-                    fieldAfterClick = minesweeper.revealAllMines(fieldAfterClick);
+                switch (cell.symbol) {
+                    case minesweeper.CellValueEnum.EMPTY:
+                        fieldAfterClick = minesweeper.revealReachableEmptyCells(fieldAfterClick, e.coordinate);
+                        break;
 
-                    break;
+                    case minesweeper.CellValueEnum.MINE:
+                        gameStatusAfterClick = minesweeper.GameStatusEnum.LOST;
+                        fieldAfterClick = minesweeper.revealAllMines(fieldAfterClick);
 
-                default:
-                    fieldAfterClick.data[e.coordinates].state = minesweeper.CellStateEnum.OPEN;
+                        break;
+
+                    default:
+                        fieldAfterClick.data[e.coordinate].state = minesweeper.CellStateEnum.OPEN;
+                }
+
+            } else {
+                var isMarked = fieldAfterClick.data[e.coordinate].state == minesweeper.CellStateEnum.MARKED;
+                fieldAfterClick.data[e.coordinate].state = isMarked ? minesweeper.CellStateEnum.CLOSED : minesweeper.CellStateEnum.MARKED;
             }
 
-
+            /* Trigger component re-rendering, cause something has changed */
             this.setState({
                 field: fieldAfterClick,
                 gameStatus: gameStatusAfterClick
             });
         }
+
+
     },
 
     getInitialState: function () {
