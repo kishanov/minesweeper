@@ -147,16 +147,20 @@ var Cell = React.createClass({
 
     render: function () {
         var cx = React.addons.classSet;
-        var classes = cx({
+        var css = {
             'field-cell': true,
             'field-cell-opened': this.props.value.state == minesweeper.CellStates.OPEN,
-        });
+        };
+
+        if (!isNaN(this.props.value.symbol)) {
+            css["mines" + this.props.value.symbol.toString()] = true;
+        }
 
         var symb = this.props.value.state == minesweeper.CellStates.OPEN ? this.props.value.symbol : minesweeper.constants.empty;
 
 
         return React.DOM.div({
-            className: classes,
+            className: cx(css),
             onMouseDown: this.handleClick
         }, symb);
     }
