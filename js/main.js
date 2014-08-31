@@ -16,15 +16,29 @@ var minesweeper = {
     },
 
 
-    generateField: function (width, height) {
-        return _.map(_.range(width), function (x) {
-            return _.map(_.range(height), function (y) {
-                return {
-                    symbol: minesweeper.constants.flag,
-                    cellState: minesweeper.CellStates.CLOSED
-                };
+    generateField: function (width, height, mines) {
+        var field = { width: width, height: height, mines: mines, data: {}};
+        var coords = [];
+        var minesCounter = mines;
+
+        _.each(_.range(width), function (x) {
+            _.each(_.range(height), function (y) {
+                coords.push([x, y]);
             });
         });
+
+        coords = _.shuffle(coords);
+
+        _.each(coords, function (pos) {
+            field.data[pos] = {
+                symbol: minesCounter > 0 ? minesweeper.constants.bomb : minesweeper.constants.empty,
+                cellState: minesweeper.CellStates.CLOSED
+            };
+            minesCounter--;
+        });
+
+
+        return field;
     }
 };
 
@@ -38,18 +52,16 @@ var Cell = React.createClass({
 
 var Field = React.createClass({
     render: function () {
-        var fieldData = this.props.fieldData;
-        var width = fieldData.length;
-        var height = fieldData[0].length;
+        var field = this.props.field;
 
         return React.DOM.div({className: "field"},
-            _.map(_.range(width), function (i) {
+            _.map(_.range(field.width), function (i) {
                 return React.DOM.div({className: "field-row"},
-                    _.map(_.range(height), function (j) {
+                    _.map(_.range(field.height), function (j) {
                         return Cell({
                             x: i,
                             y: j,
-                            v: fieldData[i][j]
+                            v: field.data[[i, j]]
                         })
                     }));
             }));
@@ -60,13 +72,13 @@ var Field = React.createClass({
 var Game = React.createClass({
     getInitialState: function () {
         return {
-            field: minesweeper.generateField(this.props.width, this.props.height)
+            field: minesweeper.generateField(this.props.width, this.props.height, this.props.mines)
         }
     },
 
     render: function () {
         console.log(this.state);
-        return React.DOM.div(null, Field({fieldData: this.state.field}));
+        return React.DOM.div(null, Field({field: this.state.field}));
     }
 });
 
