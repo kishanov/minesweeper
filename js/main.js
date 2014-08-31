@@ -100,24 +100,41 @@ var minesweeper = {
 
 
 var Cell = React.createClass({
+    handleClick: function (e) {
+        e.preventDefault();
+
+        this.props.onCellClick({
+            coordinates: this.props.coordinates,
+            button: e.button
+        });
+    },
+
     render: function () {
-        return React.DOM.div({className: "field-cell"}, this.props.v.symbol);
+        return React.DOM.div({
+            className: "field-cell",
+            onMouseDown: this.handleClick
+        }, this.props.value.symbol);
     }
 });
 
 
 var Field = React.createClass({
+    handleClick: function (e) {
+        this.props.onCellClick(e);
+    },
+
     render: function () {
         var field = this.props.field;
+        var clickEvent = this.handleClick;
 
         return React.DOM.div({className: "field"},
             _.map(_.range(field.width), function (i) {
                 return React.DOM.div({className: "field-row"},
                     _.map(_.range(field.height), function (j) {
                         return Cell({
-                            x: i,
-                            y: j,
-                            v: field.data[[i, j]]
+                            coordinates: [i, j],
+                            value: field.data[[i, j]],
+                            onCellClick: clickEvent
                         })
                     }));
             }));
@@ -126,6 +143,11 @@ var Field = React.createClass({
 
 
 var Game = React.createClass({
+    handleClick: function (e) {
+        console.log("in game");
+        console.log(e);
+    },
+
     getInitialState: function () {
         return {
             field: minesweeper.generateField(this.props.width, this.props.height, this.props.mines)
@@ -133,8 +155,7 @@ var Game = React.createClass({
     },
 
     render: function () {
-        console.log(this.state);
-        return React.DOM.div(null, Field({field: this.state.field}));
+        return React.DOM.div(null, Field({field: this.state.field, onCellClick: this.handleClick}));
     }
 });
 
