@@ -1,6 +1,10 @@
 'use strict';
 
 
+/* ----------------------------- */
+/* ------ Game Engine Part ----- */
+/* ----------------------------- */
+
 var minesweeper = {
     CellValueEnum: {
         EMPTY: '\u00A0',
@@ -160,6 +164,10 @@ var minesweeper = {
     }
 };
 
+
+/* ------------------------- */
+/* ------ ReactJS Part ----- */
+/* ------------------------- */
 
 var Cell = React.createClass({
     handleClick: function (e) {
