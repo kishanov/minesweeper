@@ -15,27 +15,83 @@ var minesweeper = {
         OPEN: 2
     },
 
+    _getFieldCoordinates: function (width, height) {
+        var coordinates = [];
 
-    generateField: function (width, height, mines) {
-        var field = { width: width, height: height, mines: mines, data: {}};
-        var coords = [];
-        var minesCounter = mines;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                coordinates.push([x, y]);
+            }
+        }
 
-        _.each(_.range(width), function (x) {
-            _.each(_.range(height), function (y) {
-                coords.push([x, y]);
-            });
-        });
+        return coordinates;
+    },
 
-        coords = _.shuffle(coords);
+    _placeMines: function (field) {
+        var coordinates = _.shuffle(field.coordinates);
+        var minesCounter = field.mines;
 
-        _.each(coords, function (pos) {
-            field.data[pos] = {
+        _.each(coordinates, function (coordinate) {
+            field.data[coordinate] = {
                 symbol: minesCounter > 0 ? minesweeper.constants.bomb : minesweeper.constants.empty,
                 cellState: minesweeper.CellStates.CLOSED
             };
             minesCounter--;
         });
+
+        return field;
+    },
+
+    _neighbors: function (coordinates, fieldWidth, fieldHeight) {
+        var x = coordinates[0];
+        var y = coordinates[1];
+
+        var eightCellsAround = [
+            [x - 1, y - 1],
+            [x - 1, y],
+            [x - 1, y + 1],
+            [x, y - 1],
+            [x, y + 1],
+            [x + 1, y - 1],
+            [x + 1, y],
+            [x + 1, y + 1]
+        ];
+
+        return _.filter(eightCellsAround, function (pos) {
+            return pos[0] >= 0 && pos[1] >= 0 && pos[0] < fieldWidth && pos[1] < fieldHeight;
+        });
+    },
+
+    _placeNumbers: function (field) {
+        var nonMineCells = _.filter(field.coordinates, function (c) {
+            return field.data[c].symbol != minesweeper.constants.bomb;
+        });
+
+        _.each(nonMineCells, function (c) {
+            var neighbors = minesweeper._neighbors(c, field.width, field.height);
+            var neighboringMines = _.filter(neighbors, function (n) {
+                return field.data[n].symbol == minesweeper.constants.bomb;
+            });
+
+            var countOfMines = neighboringMines.length;
+
+            field.data[c].symbol = countOfMines == 0 ? minesweeper.constants.empty : countOfMines;
+        });
+
+        return field;
+    },
+
+    generateField: function (width, height, mines) {
+        var field = {
+            width: width,
+            height: height,
+            mines: mines,
+            coordinates: minesweeper._getFieldCoordinates(width, height),
+            data: {}
+        };
+
+        field = minesweeper._placeMines(field);
+        field = minesweeper._placeNumbers(field);
 
 
         return field;
