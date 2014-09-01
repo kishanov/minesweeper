@@ -76,7 +76,7 @@ var minesweeper = {
 
     _emptyNeighbors: function (coordinate, field) {
         return _.filter(minesweeper._neighbors(coordinate, field.width, field.height), function (c) {
-            return field.data[c].symbol != minesweeper.CellValueEnum.MINE;
+            return field.data[c].symbol == minesweeper.CellValueEnum.EMPTY;
         });
     },
 
