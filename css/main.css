@@ -26,18 +26,18 @@
 
 .field-cell:hover {
     cursor: pointer;
-    background-color: lightgray;
+    background-color: #aaa;
 }
 
 .field-cell-opened {
     box-shadow: inset 0 0 2px #666;
     -moz-box-shadow: inset 0 0 2px #666;
     -webkit-box-shadow: inset 0 0 2px #666;
-    background: lightgray;
+    background: #ccc;
 }
 
 .marked-cell {
-    color: crimson;
+    color: crimson !important;
 }
 
 .mines1 {
@@ -70,4 +70,22 @@
 
 .mines8 {
     color: grey;
+}
+
+.game-header: {
+    margin-bottom: 8px;
+    padding: 8px;
+}
+
+.game-header .moves-counter {
+    float: left;
+}
+
+.game-header .game-status-face {
+    margin: auto;
+    font-size: 44px;
+}
+
+.game-header .game-timer {
+    float: right;
 }

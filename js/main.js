@@ -13,6 +13,13 @@ var minesweeper = {
     },
 
 
+    Smileys: {
+        NORMAL: '\u263A',
+        WINNER: '\u263B',
+        LOSER: '\u2639'
+    },
+
+
     CellStateEnum: {
         CLOSED: 0,
         MARKED: 1,
@@ -124,6 +131,19 @@ var minesweeper = {
         });
 
         return field;
+    },
+
+
+    checkIfWon: function (field) {
+        var openCells = _.filter(field.coordinates, function (c) {
+            return field.data[c].state == minesweeper.CellStateEnum.OPEN;
+        });
+
+        var markedMines = _.filter(field.coordinates, function (c) {
+            return field.data[c].state == minesweeper.CellStateEnum.MARKED && field.data[c].symbol == minesweeper.CellValueEnum.MINE;
+        });
+
+        return openCells.length + markedMines.length == field.coordinates.length;
     },
 
 
@@ -247,6 +267,30 @@ var Field = React.createClass({
 });
 
 
+var FieldHeader = React.createClass({
+    render: function () {
+        var appropriateFace = null;
+
+        switch (this.props.gameStatus) {
+            case minesweeper.GameStatusEnum.WON:
+                appropriateFace = minesweeper.Smileys.WINNER;
+                break;
+
+            case minesweeper.GameStatusEnum.LOST:
+                appropriateFace = minesweeper.Smileys.LOSER;
+                break;
+
+            default:
+                appropriateFace = minesweeper.Smileys.NORMAL;
+        }
+
+        return React.DOM.div({className: "game-header"},
+            React.DOM.div({className: "game-status-face"}, appropriateFace));
+
+    }
+});
+
+
 var Game = React.createClass({
     handleClick: function (e) {
         var cell = this.state.field.data[e.coordinate];
@@ -268,8 +312,8 @@ var Game = React.createClass({
                         break;
 
                     case minesweeper.CellValueEnum.MINE:
-                        gameStatusAfterClick = minesweeper.GameStatusEnum.LOST;
                         fieldAfterClick = minesweeper.revealAllMines(fieldAfterClick);
+                        gameStatusAfterClick = minesweeper.GameStatusEnum.LOST;
 
                         break;
 
@@ -282,10 +326,15 @@ var Game = React.createClass({
                 fieldAfterClick.data[e.coordinate].state = isMarked ? minesweeper.CellStateEnum.CLOSED : minesweeper.CellStateEnum.MARKED;
             }
 
+            if (gameStatusAfterClick != minesweeper.GameStatusEnum.LOST) {
+                gameStatusAfterClick = minesweeper.checkIfWon(fieldAfterClick) ? minesweeper.GameStatusEnum.WON : minesweeper.GameStatusEnum.IN_PROGRESS;
+            }
+
             /* Trigger component re-rendering, cause something has changed */
             this.setState({
                 field: fieldAfterClick,
-                gameStatus: gameStatusAfterClick
+                gameStatus: gameStatusAfterClick,
+                movesCount: this.state.movesCount + 1
             });
         }
 
@@ -295,12 +344,17 @@ var Game = React.createClass({
     getInitialState: function () {
         return {
             field: minesweeper.generateField(this.props.width, this.props.height, this.props.mines),
-            gameStatus: minesweeper.GameStatusEnum.IN_PROGRESS
+            gameStatus: minesweeper.GameStatusEnum.IN_PROGRESS,
+            movesCount: 0
         }
     },
 
     render: function () {
-        return React.DOM.div(null, Field({field: this.state.field, onCellClick: this.handleClick}));
+        console.log(this.state.gameStatus);
+        var header = FieldHeader({gameStatus: this.state.gameStatus});
+        var gameField = Field({field: this.state.field, onCellClick: this.handleClick});
+
+        return React.DOM.div(null, [header, gameField]);
     }
 });
 
