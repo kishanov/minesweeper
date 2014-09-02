@@ -15,7 +15,7 @@ var minesweeper = {
 
     Smileys: {
         NORMAL: '\u263A',
-        WINNER: '\u263B',
+        WINNER: '\u270C',
         LOSER: '\u2639'
     },
 
@@ -359,7 +359,6 @@ var Game = React.createClass({
     },
 
     render: function () {
-        console.log(this.state.gameStatus);
         var header = FieldHeader({gameStatus: this.state.gameStatus});
         var gameField = Field({field: this.state.field, onCellClick: this.handleClick});
 
@@ -368,4 +367,29 @@ var Game = React.createClass({
 });
 
 
-React.renderComponent(Game({width: 9, height: 9, mines: 10}), document.getElementById("game"));
+// React.renderComponent(Game({width: 9, height: 9, mines: 10}), document.getElementById("game"));
+
+
+$('#start-game-btn').click(function (e) {
+    e.preventDefault();
+    $('#new-game-modal').modal('hide');
+
+    var choices = _.map(["beginner", "intermediate", "expert"], function (d) {
+        return $('#difficulty-' + d).is(":checked");
+    });
+
+    var gameSettings = [
+        {width: 8, height: 8, mines: 10},
+        {width: 16, height: 16, mines: 40},
+        {width: 30, height: 16, mines: 99}
+    ];
+
+    var chosenGameOptions = _.filter(_.zip(choices, gameSettings), function (pair) {
+        return pair[0];
+    })[0][1];
+
+    var gameDiv = document.getElementById("game");
+
+    React.unmountComponentAtNode(gameDiv);
+    React.renderComponent(Game(chosenGameOptions), gameDiv);
+});
