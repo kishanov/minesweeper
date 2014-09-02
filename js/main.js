@@ -297,7 +297,7 @@ var FieldHeader = React.createClass({
             [
                 React.DOM.div({className: "moves-counter"}, this.props.movesCount),
                 React.DOM.div({className: "game-status-face"}, appropriateFace),
-                React.DOM.div({className: "game-timer"}, "right")
+                React.DOM.div({className: "game-timer"}, this.props.secondsElapsed)
             ]);
 
     }
@@ -358,8 +358,24 @@ var Game = React.createClass({
         return {
             field: minesweeper.generateField(this.props.width, this.props.height, this.props.mines),
             gameStatus: minesweeper.GameStatusEnum.IN_PROGRESS,
-            movesCount: 0
+            movesCount: 0,
+            secondsElapsed: 0
         }
+    },
+
+    tick: function () {
+        this.setState({
+            secondsElapsed: this.state.gameStatus == minesweeper.GameStatusEnum.IN_PROGRESS ?
+                this.state.secondsElapsed + 1 : this.state.secondsElapsed
+        });
+    },
+
+    componentDidMount: function () {
+        this.interval = setInterval(this.tick, 1000);
+    },
+
+    componentWillUnmount: function () {
+        clearInterval(this.interval);
     },
 
     render: function () {
@@ -367,7 +383,11 @@ var Game = React.createClass({
             width: 32 * this.props.width + 10
         };
 
-        var header = FieldHeader({gameStatus: this.state.gameStatus, movesCount: this.state.movesCount});
+        var header = FieldHeader({
+            gameStatus: this.state.gameStatus,
+            movesCount: this.state.movesCount,
+            secondsElapsed: this.state.secondsElapsed
+        });
         var gameField = Field({field: this.state.field, onCellClick: this.handleClick});
 
         return React.DOM.div({className: "game-board", style: headerStyle}, [header, gameField]);
