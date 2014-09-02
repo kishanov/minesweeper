@@ -244,8 +244,6 @@ var Cell = React.createClass({
             css["marked-cell"] = true;
         }
 
-        console.log(this.props);
-
         var styles = {
             minWidth: this.props.cellWidth,
             height: this.props.cellWidth,
@@ -279,7 +277,8 @@ var Field = React.createClass({
                             coordinate: [i, j],
                             value: field.data[[i, j]],
                             onCellClick: clickEvent,
-                            cellWidth: cellWidth
+                            cellWidth: cellWidth,
+                            key: i.toString() + "_" + j.toString()
                         })
                     }));
             }));
@@ -442,4 +441,9 @@ $('#start-game-btn').click(function (e) {
 
     React.unmountComponentAtNode(gameDiv);
     React.renderComponent(Game(_.merge(chosenGameOptions, {cellWidth: 32})), gameDiv);
+});
+
+
+$('#quit-menu-item').click(function () {
+    window.close();
 });

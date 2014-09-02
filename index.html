@@ -29,7 +29,8 @@
 
 
 <!-- Modal -->
-<div class="modal fade" id="new-game-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="new-game-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -78,11 +79,12 @@
                         <a id="drop1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Game
                             <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
-                            <li role="presentation" data-toggle="modal" data-target="#new-game-modal"><a role="menuitem"
-                                                                                                  tabindex="-1">New</a>
+                            <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#new-game-modal"
+                                                       tabindex="-1">New</a>
                             </li>
                             <li role="presentation" class="divider"></li>
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Quit</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="#"
+                                                       id="quit-menu-item">Quit</a></li>
                         </ul>
                     </li>
                 </ul>
