@@ -85,10 +85,20 @@
 .game-header .moves-counter {
     display: inline-block;
     float: left;
+    margin-left: 8px;
+    width: 80px;
+    text-align: left;
+}
+
+.big-red-number {
+    font-family: "Courier New", Courier, monospace;
+    color: darkred;
+    font-size: 44px;
+    font-weight: bold;
+    vertical-align: middle;
 }
 
 .game-header .game-status-face {
-    margin: auto;
     font-size: 44px;
     display: inline-block;
 }
@@ -97,4 +107,7 @@
     display: inline-block;
     white-space: normal;
     float: right;
+    margin-right: 8px;
+    width: 80px;
+    text-align: right;
 }

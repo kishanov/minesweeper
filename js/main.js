@@ -306,9 +306,9 @@ var FieldHeader = React.createClass({
 
         return React.DOM.div({className: "game-header", style: {width: this.props.headerWidth}},
             [
-                React.DOM.div({className: "moves-counter"}, this.props.movesCount),
+                React.DOM.div({className: "moves-counter big-red-number"}, this.props.movesCount),
                 React.DOM.div({className: "game-status-face", style: {width: this.props.smileyDivWidth}}, appropriateFace),
-                React.DOM.div({className: "game-timer"}, this.props.secondsElapsed)
+                React.DOM.div({className: "game-timer big-red-number"}, this.props.secondsElapsed)
             ]);
 
     }
