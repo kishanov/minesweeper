@@ -1,11 +1,9 @@
 .game-board {
     text-align: center;
-    padding: 2px;
     box-shadow: 0 0 2px #000;
 }
 
 .field {
-    margin: 2px;
     display: table;
     border: 1px solid #666;
 }
@@ -15,23 +13,16 @@
 }
 
 .field-cell {
-    margin: 2px;
     box-shadow: 0 0 2px #000;
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    max-height: 32px;
+    -moz-box-shadow: 0 0px #000;
+    -webkit-box-shadow: 0 0px #000;
     display: table-cell;
-    font-size: 24px;
-    padding-top: 4px;
     border: 1px solid #666;
+    vertical-align: middle;
     background-color: #eee;
     text-align: center;
     font-family: "Courier New", Courier, monospace;
     font-weight: bold;
-    /*-moz-box-shadow: 1px 1px 1px 1px #000;*/
-    /*-webkit-box-shadow: 1px 1px 1px 1px #000;*/
 }
 
 .field-cell:hover {
@@ -85,6 +76,10 @@
 .game-header {
     margin-bottom: 8px;
     white-space: nowrap;
+    border: 2px solid #666;
+    box-shadow: inset 0 0 2px #000;
+    -moz-box-shadow: inset 0 0px #000;
+    -webkit-box-shadow: inset 0 0px #000;
 }
 
 .game-header .moves-counter {
@@ -95,7 +90,6 @@
 .game-header .game-status-face {
     margin: auto;
     font-size: 44px;
-    width: 74px;
     display: inline-block;
 }
 

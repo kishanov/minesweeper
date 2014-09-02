@@ -244,8 +244,17 @@ var Cell = React.createClass({
             css["marked-cell"] = true;
         }
 
+        console.log(this.props);
+
+        var styles = {
+            minWidth: this.props.cellWidth,
+            height: this.props.cellWidth,
+            fontSize: this.props.cellWidth / 4 * 3
+        };
+
         return React.DOM.div({
             className: cx(css),
+            style: styles,
             onMouseDown: this.handleClick
         }, displayValue[this.props.value.state]);
     }
@@ -260,6 +269,7 @@ var Field = React.createClass({
     render: function () {
         var field = this.props.field;
         var clickEvent = this.handleClick;
+        var cellWidth = this.props.cellWidth;
 
         return React.DOM.div({className: "field"},
             _.map(_.range(field.height), function (i) {
@@ -268,7 +278,8 @@ var Field = React.createClass({
                         return Cell({
                             coordinate: [i, j],
                             value: field.data[[i, j]],
-                            onCellClick: clickEvent
+                            onCellClick: clickEvent,
+                            cellWidth: cellWidth
                         })
                     }));
             }));
@@ -293,10 +304,10 @@ var FieldHeader = React.createClass({
                 appropriateFace = minesweeper.Smileys.NORMAL;
         }
 
-        return React.DOM.div({className: "game-header"},
+        return React.DOM.div({className: "game-header", style: {width: this.props.headerWidth}},
             [
                 React.DOM.div({className: "moves-counter"}, this.props.movesCount),
-                React.DOM.div({className: "game-status-face"}, appropriateFace),
+                React.DOM.div({className: "game-status-face", style: {width: this.props.smileyDivWidth}}, appropriateFace),
                 React.DOM.div({className: "game-timer"}, this.props.secondsElapsed)
             ]);
 
@@ -379,23 +390,33 @@ var Game = React.createClass({
     },
 
     render: function () {
-        var headerStyle = {
-            width: 32 * this.props.width + 10
+        var paddingVal = 12;
+
+        var style = {
+            padding: paddingVal,
+            width: this.props.cellWidth * this.props.width + paddingVal * 2
         };
 
         var header = FieldHeader({
             gameStatus: this.state.gameStatus,
             movesCount: this.state.movesCount,
-            secondsElapsed: this.state.secondsElapsed
+            secondsElapsed: this.state.secondsElapsed,
+            smileyDivWidth: this.props.cellWidth * 2,
+            headerWidth: this.props.cellWidth * this.props.width + 2
         });
-        var gameField = Field({field: this.state.field, onCellClick: this.handleClick});
 
-        return React.DOM.div({className: "game-board", style: headerStyle}, [header, gameField]);
+        var gameField = Field({
+            field: this.state.field,
+            onCellClick: this.handleClick,
+            cellWidth: this.props.cellWidth
+        });
+
+        return React.DOM.div({className: "game-board", style: style}, [header, gameField]);
     }
 });
 
 
-React.renderComponent(Game({width: 9, height: 9, mines: 10}), document.getElementById("game"));
+React.renderComponent(Game({width: 8, height: 8, mines: 10, cellWidth: 32}), document.getElementById("game"));
 
 
 $('#start-game-btn').click(function (e) {
@@ -419,5 +440,5 @@ $('#start-game-btn').click(function (e) {
     var gameDiv = document.getElementById("game");
 
     React.unmountComponentAtNode(gameDiv);
-    React.renderComponent(Game(chosenGameOptions), gameDiv);
+    React.renderComponent(Game(_.merge(chosenGameOptions, {cellWidth: 32})), gameDiv);
 });
