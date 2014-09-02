@@ -76,7 +76,14 @@ var minesweeper = {
 
     _emptyNeighbors: function (coordinate, field) {
         return _.filter(minesweeper._neighbors(coordinate, field.width, field.height), function (c) {
-            return field.data[c].symbol != minesweeper.CellValueEnum.MINE;
+            return field.data[c].symbol == minesweeper.CellValueEnum.EMPTY;
+        });
+    },
+
+
+    _neighborsWithNumbers: function (coordinate, field) {
+        return _.filter(minesweeper._neighbors(coordinate, field.width, field.height), function (c) {
+            return !isNaN(field.data[c].symbol);
         });
     },
 
@@ -108,7 +115,13 @@ var minesweeper = {
             level += 1;
         }
 
-        return vertices;
+        var result = [].concat(vertices);
+
+        _.each(vertices, function (v) {
+            result = result.concat(minesweeper._neighborsWithNumbers(v, field));
+        });
+
+        return _.uniq(result);
     },
 
 
