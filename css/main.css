@@ -19,6 +19,9 @@
     box-shadow: 0 0 2px #000;
     width: 32px;
     height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    max-height: 32px;
     display: table-cell;
     font-size: 24px;
     padding-top: 4px;
@@ -80,18 +83,24 @@
 }
 
 .game-header {
-    margin-bottom: 2px;
+    margin-bottom: 8px;
+    white-space: nowrap;
 }
 
 .game-header .moves-counter {
+    display: inline-block;
     float: left;
 }
 
 .game-header .game-status-face {
     margin: auto;
     font-size: 44px;
+    width: 74px;
+    display: inline-block;
 }
 
 .game-header .game-timer {
+    display: inline-block;
+    white-space: normal;
     float: right;
 }

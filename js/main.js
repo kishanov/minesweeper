@@ -294,7 +294,11 @@ var FieldHeader = React.createClass({
         }
 
         return React.DOM.div({className: "game-header"},
-            React.DOM.div({className: "game-status-face"}, appropriateFace));
+            [
+                React.DOM.div({className: "moves-counter"}, this.props.movesCount),
+                React.DOM.div({className: "game-status-face"}, appropriateFace),
+                React.DOM.div({className: "game-timer"}, "right")
+            ]);
 
     }
 });
@@ -312,8 +316,10 @@ var Game = React.createClass({
         } else {
             var fieldAfterClick = _.cloneDeep(this.state.field);
             var gameStatusAfterClick = this.state.gameStatus;
+            var movesCountAfterClick = this.state.movesCount;
 
             if (e.button == minesweeper.MouseButtonsEnum.LEFT) {
+                movesCountAfterClick += 1;
 
                 switch (cell.symbol) {
                     case minesweeper.CellValueEnum.EMPTY:
@@ -343,7 +349,7 @@ var Game = React.createClass({
             this.setState({
                 field: fieldAfterClick,
                 gameStatus: gameStatusAfterClick,
-                movesCount: this.state.movesCount + 1
+                movesCount: movesCountAfterClick
             });
         }
     },
@@ -358,10 +364,10 @@ var Game = React.createClass({
 
     render: function () {
         var headerStyle = {
-            width: 32 * this.props.width
+            width: 32 * this.props.width + 10
         };
 
-        var header = FieldHeader({gameStatus: this.state.gameStatus});
+        var header = FieldHeader({gameStatus: this.state.gameStatus, movesCount: this.state.movesCount});
         var gameField = Field({field: this.state.field, onCellClick: this.handleClick});
 
         return React.DOM.div({className: "game-board", style: headerStyle}, [header, gameField]);
@@ -369,7 +375,7 @@ var Game = React.createClass({
 });
 
 
-// React.renderComponent(Game({width: 9, height: 9, mines: 10}), document.getElementById("game"));
+React.renderComponent(Game({width: 9, height: 9, mines: 10}), document.getElementById("game"));
 
 
 $('#start-game-btn').click(function (e) {
