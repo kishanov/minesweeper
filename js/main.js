@@ -152,11 +152,7 @@ var minesweeper = {
             return field.data[c].state == minesweeper.CellStateEnum.OPEN;
         });
 
-        var markedMines = _.filter(field.coordinates, function (c) {
-            return field.data[c].state == minesweeper.CellStateEnum.MARKED && field.data[c].symbol == minesweeper.CellValueEnum.MINE;
-        });
-
-        return openCells.length + markedMines.length == field.coordinates.length;
+        return field.coordinates.length - openCells.length == field.mines;
     },
 
 
