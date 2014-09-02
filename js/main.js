@@ -417,7 +417,7 @@ var Game = React.createClass({
 });
 
 
-React.renderComponent(Game({width: 8, height: 8, mines: 10, cellWidth: 32}), document.getElementById("game"));
+//React.renderComponent(Game({width: 8, height: 8, mines: 10, cellWidth: 32}), document.getElementById("game"));
 
 
 $('#start-game-btn').click(function (e) {
