@@ -332,6 +332,10 @@ var Game = React.createClass({
             if (e.button == minesweeper.MouseButtonsEnum.LEFT) {
                 movesCountAfterClick += 1;
 
+                if (movesCountAfterClick == 1) {
+                    this.interval = setInterval(this.tick, 1000);
+                }
+
                 switch (cell.symbol) {
                     case minesweeper.CellValueEnum.EMPTY:
                         fieldAfterClick = minesweeper.revealReachableEmptyCells(fieldAfterClick, e.coordinate);
@@ -381,9 +385,6 @@ var Game = React.createClass({
         });
     },
 
-    componentDidMount: function () {
-        this.interval = setInterval(this.tick, 1000);
-    },
 
     componentWillUnmount: function () {
         clearInterval(this.interval);
