@@ -43,8 +43,8 @@ var minesweeper = {
     _getFieldCoordinates: function (width, height) {
         var coordinates = [];
 
-        for (var x = 0; x < width; x++) {
-            for (var y = 0; y < height; y++) {
+        for (var x = 0; x < height; x++) {
+            for (var y = 0; y < width; y++) {
                 coordinates.push([x, y]);
             }
         }
@@ -69,7 +69,7 @@ var minesweeper = {
         ];
 
         return _.filter(eightCellsAround, function (pos) {
-            return pos[0] >= 0 && pos[1] >= 0 && pos[0] < fieldWidth && pos[1] < fieldHeight;
+            return pos[0] >= 0 && pos[1] >= 0 && pos[0] < fieldHeight && pos[1] < fieldWidth;
         });
     },
 
@@ -262,9 +262,9 @@ var Field = React.createClass({
         var clickEvent = this.handleClick;
 
         return React.DOM.div({className: "field"},
-            _.map(_.range(field.width), function (i) {
+            _.map(_.range(field.height), function (i) {
                 return React.DOM.div({className: "field-row"},
-                    _.map(_.range(field.height), function (j) {
+                    _.map(_.range(field.width), function (j) {
                         return Cell({
                             coordinate: [i, j],
                             value: field.data[[i, j]],
@@ -346,8 +346,6 @@ var Game = React.createClass({
                 movesCount: this.state.movesCount + 1
             });
         }
-
-
     },
 
     getInitialState: function () {
@@ -359,10 +357,14 @@ var Game = React.createClass({
     },
 
     render: function () {
+        var headerStyle = {
+            width: 32 * this.props.width
+        };
+
         var header = FieldHeader({gameStatus: this.state.gameStatus});
         var gameField = Field({field: this.state.field, onCellClick: this.handleClick});
 
-        return React.DOM.div(null, [header, gameField]);
+        return React.DOM.div({className: "game-board", style: headerStyle}, [header, gameField]);
     }
 });
 
